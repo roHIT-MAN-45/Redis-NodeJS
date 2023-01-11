@@ -13,6 +13,10 @@ client.on("connect", () => {
   console.log("Connected to redis 👍");
 });
 
+client.on("error", (err) => {
+  console.log(`Connection failed ${err}`);
+});
+
 const exec = mongoose.Query.prototype.exec;
 
 mongoose.Query.prototype.cache = function (options = {}) {

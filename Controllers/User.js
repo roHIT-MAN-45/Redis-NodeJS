@@ -1,5 +1,8 @@
 import { User } from "../Models/User.js";
 
+// Bcrypt
+import bcrypt from "bcrypt";
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}).populate("posts");
@@ -19,7 +22,7 @@ export const getUser = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: `User with ${id} not found` });
 
-    res.status(200).json({ message: "Success", data: user });
+    res.status(200).json({ message: "Success", user: user });
   } catch (error) {
     res.status(500).send({ error: "Error getting user" });
     console.log(error.message);
@@ -27,12 +30,26 @@ export const getUser = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const body = req.body;
+  const { firstName, lastName, email, phoneNumber, password } = req.body;
 
+  // The more rounds the more strong password
+  const saltRounds = 10;
   try {
-    const user = new User(body);
+    let user;
+    // Hashing password before storing it in DB
+    bcrypt.genSalt(saltRounds, (err, salt) => {
+      bcrypt.hash(password, salt, (err, hash) => {
+        user = new User({
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+          email: email,
+          password: hash,
+        });
 
-    await user.save();
+        user.save();
+      });
+    });
 
     res.status(201).json({ message: "Success", data: user });
   } catch (error) {

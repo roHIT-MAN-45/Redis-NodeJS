@@ -1,4 +1,5 @@
 import { Post } from "../Models/Post.js";
+import { User } from "../Models/User.js";
 
 export const getAllPosts = async (req, res) => {
   try {
@@ -28,6 +29,7 @@ export const getPost = async (req, res) => {
 
 export const getUserPosts = async (req, res) => {
   const { id } = req.params;
+
   try {
     const posts = await Post.find({ author: id }).cache({ key: id });
 
@@ -81,13 +83,22 @@ export const updatePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
   const { id } = req.params;
+
+  const currentUser = req.user;
+
   try {
+    const user = await User.findById(currentUser._id);
+
     const post = await Post.findById(id);
 
     if (!post)
       return res.status(404).json({ message: `Post with ${id} not found` });
 
-    await user.remove();
+    await post.remove();
+
+    user.posts.pull(id);
+
+    await user.save();
 
     res.status(200).json({ message: "Success" });
   } catch (error) {

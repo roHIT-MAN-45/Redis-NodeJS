@@ -1,4 +1,6 @@
 import express from "express";
+
+// Controllers
 import {
   getAllUsers,
   getUser,
